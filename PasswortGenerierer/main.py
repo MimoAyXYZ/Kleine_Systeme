@@ -29,6 +29,23 @@ eingelogt: bool = False
 passwort = ""
 
 
+def verschluesseln_sichtbar(text):
+    ergebnis = []
+    for zeichen in text:
+        ascii_code = str(ord(zeichen))  # z. B. '72'
+        verschluesselt = ''.join(chr(int(z) + 48) for z in ascii_code)
+        ergebnis.append(verschluesselt)
+    return ergebnis
+
+
+def entschluesseln_sichtbar(verschluesselt):
+    original = ""
+    for block in verschluesselt:
+        ascii_code = ''.join(str(ord(z) - 48) for z in block)
+        original += chr(int(ascii_code))
+    return original
+
+
 def pin_setzen(status):
     global root_pin_setzen, entry1_pin, entry2_pin, entry_var1_pin, entry_var2_pin, label1_pin_var, label2_pin_var, button_pin_var, status_global
     root_pin_setzen = customtkinter.CTkToplevel()
@@ -100,8 +117,11 @@ def gespeicherte_passwoerter():
                 global daten
                 """Listbox neu erstellen mit aktuellen Daten"""
                 try:
+
                     with open(file, "r", encoding="utf-8") as f:
-                        daten[:] = [zeile.strip() for zeile in f.readlines() if zeile.strip()]
+                        daten[:] = [zeile.strip().split(",") for zeile in f if zeile.strip()]
+
+
 
                 except Exception as e:
                     daten[:] = []
@@ -116,7 +136,7 @@ def gespeicherte_passwoerter():
                 lb_container.append(lb)
 
                 for item in daten:
-                    lb.insert("end", item)
+                    lb.insert("end", "".join(item))
 
             def delet_passwoert():
                 if not lb_container:
@@ -127,12 +147,14 @@ def gespeicherte_passwoerter():
                 if index is None or not (0 <= index < len(daten)):
                     return
 
+                lb.delete(index)  # <-- korrigiert
+
                 daten.pop(index)
 
                 try:
                     with open(file, "w", encoding="utf-8") as f_neu:
                         for zeile in daten:
-                            f_neu.write(zeile + "\n")
+                            f_neu.write(",".join(zeile) + "\n")  # <-- korrigiert
                 except Exception as e:
                     print("Fehler beim Schreiben der Datei:", e)
 
@@ -217,7 +239,7 @@ def input_pin_auslesen():
         if input_pin1 == input_pin2 and len(input_pin1) >= 8:
             root_pin_setzen.destroy()
             f2.seek(0)
-            f2.write(input_pin1)
+            f2.write("\n".join(verschluesseln_sichtbar(input_pin1)))
             f2.flush()  # <-- ganz wichtig!
             f2.seek(0)
             user_daten.clear()
@@ -231,7 +253,7 @@ def input_pin_auslesen():
                                                                        "\nihre richtigkeit")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
     else:
-        if input_pin1 == user_daten[0] == input_pin2:
+        if input_pin1 == entschluesseln_sichtbar(user_daten) == input_pin2:
             root_pin_setzen.destroy()
             eingelogt = True
         else:
@@ -253,8 +275,9 @@ def speichern():
             label5.grid_forget()
             label6.grid_forget()
             entry_var2.set("")
+
             with open(file, "a", encoding="utf-8") as f:
-                f.write(f"{zweck} {passwort}\n")
+                f.write(" ".join(f"{zweck}          {passwort}") + "\n")
     else:
         label6.grid(row=10, column=5, columnspan=4, sticky="new")
 
