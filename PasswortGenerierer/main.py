@@ -3,17 +3,32 @@ from tkinter import ttk
 import customtkinter
 from CTkListbox import *
 import random
+import os
+import sys
 
+
+# Funktion zum Laden von Ressourcen (z. B. Dateien), auch wenn das Programm als .exe läuft
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS  # Pfad im temporären Ordner, wenn als .exe ausgeführt
+    except Exception:
+        base_path = os.path.abspath(".")  # Pfad im normalen Entwicklungsmodus
+    return os.path.join(base_path, relative_path)
+
+
+# Erscheinungsbild der GUI
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("dark-blue")
 
-file = "data.txt"
-f = open(file, "r+", encoding="utf-8")
-daten = f.read().split("\n")
+# Datei 1 lesen
+f = "Speicher_Datein/data.txt"
+with open(resource_path(f), "r+", encoding="utf-8") as f:
+    daten = f.read().split("\n")
 
-file2 = "user_data.txt"
-f2 = open(file2, "r+", encoding="utf-8")
-user_daten = f2.read().split("\n")
+# Datei 2 lesen
+f2 = "Speicher_Datein/user_data.txt"
+with open(resource_path(f2), "r+", encoding="utf-8") as f2:
+    user_daten = f2.read().split("\n")
 
 liste_kleinebuchstaben: list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
                                 'r', 's',
@@ -94,7 +109,7 @@ def pin_setzen(status):
 
 
 def gespeicherte_passwoerter():
-    global user_daten, daten, file, eingelogt
+    global user_daten, daten, eingelogt, f
 
     if user_daten[0] == "":
         pin_setzen(1)
@@ -115,14 +130,12 @@ def gespeicherte_passwoerter():
 
             def lade_daten():
                 global daten
-                """Listbox neu erstellen mit aktuellen Daten"""
+                f = "Speicher_Datein/data.txt"
+                os.makedirs(resource_path("Speicher_Datein"), exist_ok=True)
                 try:
 
-                    with open(file, "r", encoding="utf-8") as f:
-                        daten[:] = [zeile.strip().split(",") for zeile in f if zeile.strip()]
-
-
-
+                    with open(resource_path(f), "r", encoding="utf-8") as f:
+                        daten[:] = [zeile.strip().split("   ") for zeile in f if zeile.strip()]
                 except Exception as e:
                     daten[:] = []
 
@@ -136,25 +149,30 @@ def gespeicherte_passwoerter():
                 lb_container.append(lb)
 
                 for item in daten:
-                    lb.insert("end", "".join(item))
+                    lb.insert("end", "   ".join(item))
 
             def delet_passwoert():
                 if not lb_container:
                     return
 
                 lb = lb_container[0]
-                index = lb.curselection()
-                if index is None or not (0 <= index < len(daten)):
-                    return
+                index_tuple = lb.curselection()
 
-                lb.delete(index)  # <-- korrigiert
-
+                if isinstance(index_tuple, (tuple, list)):
+                    if not index_tuple:
+                        return
+                    index = index_tuple[0]
+                else:
+                    # Falls direkt ein int zurückkommt
+                    index = index_tuple
+                lb.delete(index)
                 daten.pop(index)
 
                 try:
-                    with open(file, "w", encoding="utf-8") as f_neu:
+                    datei_pfad = "Speicher_Datein/data.txt"
+                    with open(resource_path(datei_pfad), "w", encoding="utf-8") as f_neu:
                         for zeile in daten:
-                            f_neu.write(",".join(zeile) + "\n")  # <-- korrigiert
+                            f_neu.write("   ".join([str(x) for x in zeile]) + "\n")
                 except Exception as e:
                     print("Fehler beim Schreiben der Datei:", e)
 
@@ -238,12 +256,16 @@ def input_pin_auslesen():
     if status_global == 1:
         if input_pin1 == input_pin2 and len(input_pin1) >= 8:
             root_pin_setzen.destroy()
-            f2.seek(0)
-            f2.write("\n".join(verschluesseln_sichtbar(input_pin1)))
-            f2.flush()  # <-- ganz wichtig!
-            f2.seek(0)
-            user_daten.clear()
-            user_daten = f2.read().split("\n")
+
+            with open(resource_path("Speicher_Datein/user_data.txt"), "w", encoding="utf-8") as f2:
+                f2.seek(0)
+                f2.write("\n".join(verschluesseln_sichtbar(input_pin1)))
+                f2.flush()  # <-- ganz wichtig!
+                f2.seek(0)
+                user_daten.clear()
+
+            with open(resource_path("Speicher_Datein/user_data.txt"), "r", encoding="utf-8") as f2:
+                user_daten = f2.read().split("\n")
         else:
             entry_var1_pin.set("")
             entry_var2_pin.set("")
@@ -275,9 +297,10 @@ def speichern():
             label5.grid_forget()
             label6.grid_forget()
             entry_var2.set("")
+            f = "Speicher_Datein/data.txt"
 
-            with open(file, "a", encoding="utf-8") as f:
-                f.write(" ".join(f"{zweck}          {passwort}") + "\n")
+            with open(resource_path(f), "a", encoding="utf-8") as f:
+                f.write(f"{zweck}   {passwort}\n")
     else:
         label6.grid(row=10, column=5, columnspan=4, sticky="new")
 
@@ -293,7 +316,7 @@ def on_close():
 
 
 root = customtkinter.CTk()
-root.title("Passwort Generierer")
+root.title("KeyForge-Passwort Generierer")
 root.geometry("400x400")
 
 root.protocol("WM_DELETE_WINDOW", on_close)
