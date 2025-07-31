@@ -22,13 +22,15 @@ customtkinter.set_default_color_theme("dark-blue")
 
 # Datei 1 lesen
 f = "Speicher_Datein/data.txt"
-with open(resource_path(f), "r+", encoding="utf-8") as f:
-    daten = f.read().split("\n")
+with open(resource_path(f), "a+", encoding="utf-8") as f:
+    f.seek(0)
+    daten = f.readlines()
 
 # Datei 2 lesen
 f2 = "Speicher_Datein/user_data.txt"
-with open(resource_path(f2), "r+", encoding="utf-8") as f2:
-    user_daten = f2.read().split("\n")
+with open(resource_path(f2), "a+", encoding="utf-8") as f2:
+    f2.seek(0)
+    user_daten = f2.readlines()
 
 liste_kleinebuchstaben: list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q',
                                 'r', 's',
@@ -44,21 +46,7 @@ eingelogt: bool = False
 passwort = ""
 
 
-def verschluesseln_sichtbar(text):
-    ergebnis = []
-    for zeichen in text:
-        ascii_code = str(ord(zeichen))  # z. B. '72'
-        verschluesselt = ''.join(chr(int(z) + 48) for z in ascii_code)
-        ergebnis.append(verschluesselt)
-    return ergebnis
 
-
-def entschluesseln_sichtbar(verschluesselt):
-    original = ""
-    for block in verschluesselt:
-        ascii_code = ''.join(str(ord(z) - 48) for z in block)
-        original += chr(int(ascii_code))
-    return original
 
 
 def pin_setzen(status):
@@ -101,17 +89,73 @@ def pin_setzen(status):
         label1_pin_var.set("Pin setzen:")
         label2_pin_var.set("Pin wiederholen:")
         button_pin_var.set("Pin setzen")
-    else:
+    elif status == 0:
         label1_pin_var.set("Pin:")
         label2_pin_var.set("Pin wiederholen:")
         button_pin_var.set("Einloggen")
     root_pin_setzen.mainloop()
 
 
+def konto():
+    root_konto = customtkinter.CTkToplevel()
+    root_konto.title("Konto")
+    root_konto.geometry("200x250")
+
+    def konto_loeschen():
+        print("Gelöscht")
+        if user_daten:
+            user_daten.clear()
+            daten.clear()
+            f1 = "Speicher_Datein/data.txt"
+            with open(resource_path(f1), "w", encoding="utf-8"):
+                pass
+            f1 = "Speicher_Datein/user_data.txt"
+            with open(resource_path(f1), "w", encoding="utf-8"):
+                pass
+            text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+            if user_daten:
+                text_var2.set("Konto vorhanden")
+            else:
+                text_var2.set("Kein Konto vorhanden")
+
+    def checkbox_changed():
+        if cb_var.get():
+            button_reset.configure(state="normal")
+        else:
+            button_reset.configure(state="disabled")
+
+    text_var1 = tk.StringVar()
+    text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+
+    text_var2 = tk.StringVar()
+    if user_daten:
+        text_var2.set("Konto vorhanden")
+    else:
+        text_var2.set("Kein Konto vorhanden")
+
+    cb_var = tk.BooleanVar()
+
+    label = customtkinter.CTkLabel(root_konto, textvariable=text_var2)
+    label.pack(pady=10)
+    label02 = customtkinter.CTkLabel(root_konto, textvariable=text_var1)
+    label02.pack(pady=10)
+
+    button_reset = customtkinter.CTkButton(root_konto, text="Konto Löschen", corner_radius=100,
+                                           state="disabled", command=konto_loeschen)
+    button_reset.pack(pady=10)
+
+    cb = customtkinter.CTkCheckBox(root_konto,
+                                   text="Ich stimme zu, \ndass alle meine\nDaten unwiderruflich\ngelöscht werden",
+                                   variable=cb_var, command=checkbox_changed)
+    cb.pack(pady=10)
+
+    root_konto.mainloop()
+
+
 def gespeicherte_passwoerter():
     global user_daten, daten, eingelogt, f
 
-    if user_daten[0] == "":
+    if not user_daten:
         pin_setzen(1)
         return
     else:
@@ -244,7 +288,7 @@ def erstellen():
         passwort = "".join(zusammenstellung)
         entry_var1.set(passwort)
     if fehler_meldung:
-        label4.grid(row=2, column=4, columnspan=2, sticky="ws")
+        label4.grid(row=2, column=7, columnspan=2, sticky="ws")
     else:
         label4.grid_forget()
 
@@ -259,13 +303,13 @@ def input_pin_auslesen():
 
             with open(resource_path("Speicher_Datein/user_data.txt"), "w", encoding="utf-8") as f2:
                 f2.seek(0)
-                f2.write("\n".join(verschluesseln_sichtbar(input_pin1)))
+                f2.write(input_pin1)
                 f2.flush()  # <-- ganz wichtig!
                 f2.seek(0)
                 user_daten.clear()
 
             with open(resource_path("Speicher_Datein/user_data.txt"), "r", encoding="utf-8") as f2:
-                user_daten = f2.read().split("\n")
+                user_daten = f2.readline()
         else:
             entry_var1_pin.set("")
             entry_var2_pin.set("")
@@ -274,8 +318,8 @@ def input_pin_auslesen():
                                                                        "Überprüfen sie ihre\n Passwörter auf "
                                                                        "\nihre richtigkeit")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
-    else:
-        if input_pin1 == entschluesseln_sichtbar(user_daten) == input_pin2:
+    elif status_global == 0:
+        if input_pin1 == user_daten[0] == input_pin2:
             root_pin_setzen.destroy()
             eingelogt = True
         else:
@@ -289,7 +333,7 @@ def speichern():
     zweck: str = entry2_zweck.get()
     if passwort:
         label6.grid_forget()
-        if user_daten[0] == "":
+        if not user_daten:
             pin_setzen(1)
         elif not zweck:
             label5.grid(row=10, column=5, columnspan=4, sticky="new")
@@ -301,6 +345,7 @@ def speichern():
 
             with open(resource_path(f), "a", encoding="utf-8") as f:
                 f.write(f"{zweck}   {passwort}\n")
+            daten.append(f"{zweck}   {passwort}\n")
     else:
         label6.grid(row=10, column=5, columnspan=4, sticky="new")
 
@@ -330,7 +375,7 @@ root.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), weight=1, uniform="a")
 # Benutzerflaeche erstellen
 label2 = customtkinter.CTkLabel(root, text="Zeichenarten wählen:")
 label3 = customtkinter.CTkLabel(root, text="Zweck des Passwortes:")
-label4 = customtkinter.CTkLabel(root, text="Mindestens eine Kategorie auswählen!")
+label4 = customtkinter.CTkLabel(root, text="Eine Kategorie wählen!")
 label5 = customtkinter.CTkLabel(root, text="Kein Zweck vorhanden!")
 label6 = customtkinter.CTkLabel(root, text="Kein Passwort vorhanden!")
 var_chb1 = tk.BooleanVar()
@@ -349,6 +394,7 @@ button1_erstellen = customtkinter.CTkButton(root, text="Passwort Generieren", co
 button2_speichern = customtkinter.CTkButton(root, text="Passwort Speichern", command=speichern)
 button3_gespeichertes = customtkinter.CTkButton(root, text="Gespeicherte \nPasswörter",
                                                 command=gespeicherte_passwoerter)
+button4_konto = customtkinter.CTkButton(root, text="Konto", command=konto)
 
 regler = customtkinter.CTkSlider(root, from_=8, to=50, orientation=tk.HORIZONTAL, command=slider_aktualisieren)
 regler.set(8)
@@ -366,6 +412,7 @@ chb4.grid(row=5, column=2, columnspan=5, sticky="w")
 button1_erstellen.grid(row=7, column=1, columnspan=4, sticky="nesw")
 button2_speichern.grid(row=9, column=1, columnspan=4, sticky="nesw")
 button3_gespeichertes.grid(row=0, column=8, columnspan=2, sticky="nesw")
+button4_konto.grid(row=1, column=8, columnspan=2, sticky="nesw")
 entry1_ausgabe.grid(row=7, column=5, columnspan=4, sticky="")
 entry2_zweck.grid(row=9, column=5, columnspan=4, sticky="")
 regler.grid(row=1, column=1, columnspan=6, sticky="new")
