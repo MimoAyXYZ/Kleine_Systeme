@@ -316,15 +316,20 @@ def input_pin_auslesen():
             # Errow Text wird angezeigt
             label_errow = customtkinter.CTkLabel(root_pin_setzen, text="Passwort mindest \nlänge 8 Zeichen.\n"
                                                                        "Überprüfen sie ihre\n Passwörter auf "
-                                                                       "\nihre richtigkeit")
+                                                                       "\nihre richtigkeit",text_color="red")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
     elif status_global == 0:
+        # Datei 2 lesen
+        f2 = "Speicher_Datein/user_data.txt"
+        with open(resource_path(f2), "a+", encoding="utf-8") as f2:
+            f2.seek(0)
+            user_daten = f2.readlines()
         if input_pin1 == user_daten[0] == input_pin2:
             root_pin_setzen.destroy()
             eingelogt = True
         else:
             label_errow = customtkinter.CTkLabel(root_pin_setzen, text="Passwort nicht vorhanden!\n"
-                                                                       "Überprüfen sie die Richtigkeit!")
+                                                                       "Überprüfen sie die Richtigkeit!",text_color="red")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
 
 
@@ -375,9 +380,9 @@ root.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), weight=1, uniform="a")
 # Benutzerflaeche erstellen
 label2 = customtkinter.CTkLabel(root, text="Zeichenarten wählen:")
 label3 = customtkinter.CTkLabel(root, text="Zweck des Passwortes:")
-label4 = customtkinter.CTkLabel(root, text="Eine Kategorie wählen!")
-label5 = customtkinter.CTkLabel(root, text="Kein Zweck vorhanden!")
-label6 = customtkinter.CTkLabel(root, text="Kein Passwort vorhanden!")
+label4 = customtkinter.CTkLabel(root, text="Eine Kategorie wählen!",text_color="red")
+label5 = customtkinter.CTkLabel(root, text="Kein Zweck vorhanden!",text_color="red")
+label6 = customtkinter.CTkLabel(root, text="Kein Passwort vorhanden!",text_color="red")
 var_chb1 = tk.BooleanVar()
 var_chb2 = tk.BooleanVar()
 var_chb3 = tk.BooleanVar()
