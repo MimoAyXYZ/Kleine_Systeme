@@ -45,115 +45,139 @@ fehler_meldung_chb: bool = False
 eingelogt: bool = False
 passwort = ""
 
-
-
+ge_pass_root_exist: bool = False
+pin_setzen_root_exist: bool = False
+konto_root_exist: bool = False
 
 
 def pin_setzen(status):
-    global root_pin_setzen, entry1_pin, entry2_pin, entry_var1_pin, entry_var2_pin, label1_pin_var, label2_pin_var, button_pin_var, status_global
-    root_pin_setzen = customtkinter.CTkToplevel()
-    root_pin_setzen.title("Pin setzen")
-    root_pin_setzen.geometry("400x200")
+    global root_pin_setzen, entry1_pin, entry2_pin, entry_var1_pin, entry_var2_pin, label1_pin_var, label2_pin_var, button_pin_var, status_global, pin_setzen_root_exist
+    if not pin_setzen_root_exist:
+        root_pin_setzen = customtkinter.CTkToplevel()
+        root_pin_setzen.title("Pin setzen")
+        root_pin_setzen.geometry("400x200")
 
-    status_global = status
+        pin_setzen_root_exist = True
 
-    entry_var1_pin = tk.StringVar()
-    entry_var2_pin = tk.StringVar()
+        def on_close_pin_setzen():
+            global pin_setzen_root_exist
+            root_pin_setzen.destroy()
+            pin_setzen_root_exist = False
 
-    label1_pin_var = tk.StringVar()
-    label2_pin_var = tk.StringVar()
+        root_pin_setzen.protocol("WM_DELETE_WINDOW", on_close_pin_setzen)
 
-    button_pin_var = tk.StringVar()
+        status_global = status
 
-    root_pin_setzen.columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), weight=1, uniform="a")
-    root_pin_setzen.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), weight=1, uniform="a")
+        entry_var1_pin = tk.StringVar()
+        entry_var2_pin = tk.StringVar()
 
-    # Labels und Buttons ect erstellen
-    label1_pin = customtkinter.CTkLabel(root_pin_setzen, textvariable=label1_pin_var)
-    label2_pin = customtkinter.CTkLabel(root_pin_setzen, textvariable=label2_pin_var)
+        label1_pin_var = tk.StringVar()
+        label2_pin_var = tk.StringVar()
 
-    button1 = customtkinter.CTkButton(root_pin_setzen, textvariable=button_pin_var, command=input_pin_auslesen)
+        button_pin_var = tk.StringVar()
 
-    entry1_pin = customtkinter.CTkEntry(root_pin_setzen, textvariable=entry_var1_pin)
-    entry2_pin = customtkinter.CTkEntry(root_pin_setzen, textvariable=entry_var2_pin)
+        root_pin_setzen.columnconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), weight=1, uniform="a")
+        root_pin_setzen.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), weight=1, uniform="a")
 
-    # Labels und Buttons ect anzeigen
-    label1_pin.grid(row=1, column=1, columnspan=2, sticky="ew")
-    label2_pin.grid(row=4, column=1, columnspan=2, sticky="ew")
+        # Labels und Buttons ect erstellen
+        label1_pin = customtkinter.CTkLabel(root_pin_setzen, textvariable=label1_pin_var)
+        label2_pin = customtkinter.CTkLabel(root_pin_setzen, textvariable=label2_pin_var)
 
-    button1.grid(row=2, column=10, rowspan=2, columnspan=2, sticky="ew")
+        button1 = customtkinter.CTkButton(root_pin_setzen, textvariable=button_pin_var, command=input_pin_auslesen)
 
-    entry1_pin.grid(row=2, rowspan=2, column=1, columnspan=5, sticky="ew")
-    entry2_pin.grid(row=5, rowspan=2, column=1, columnspan=5, sticky="ew")
-    if status == 1:
-        label1_pin_var.set("Pin setzen:")
-        label2_pin_var.set("Pin wiederholen:")
-        button_pin_var.set("Pin setzen")
-    elif status == 0:
-        label1_pin_var.set("Pin:")
-        label2_pin_var.set("Pin wiederholen:")
-        button_pin_var.set("Einloggen")
-    root_pin_setzen.mainloop()
+        entry1_pin = customtkinter.CTkEntry(root_pin_setzen, textvariable=entry_var1_pin)
+        entry2_pin = customtkinter.CTkEntry(root_pin_setzen, textvariable=entry_var2_pin)
+
+        # Labels und Buttons ect anzeigen
+        label1_pin.grid(row=1, column=1, columnspan=2, sticky="ew")
+        label2_pin.grid(row=4, column=1, columnspan=2, sticky="ew")
+
+        button1.grid(row=2, column=10, rowspan=2, columnspan=2, sticky="ew")
+
+        entry1_pin.grid(row=2, rowspan=2, column=1, columnspan=5, sticky="ew")
+        entry2_pin.grid(row=5, rowspan=2, column=1, columnspan=5, sticky="ew")
+        if status == 1:
+            label1_pin_var.set("Pin setzen:")
+            label2_pin_var.set("Pin wiederholen:")
+            button_pin_var.set("Pin setzen")
+        elif status == 0:
+            label1_pin_var.set("Pin:")
+            label2_pin_var.set("Pin wiederholen:")
+            button_pin_var.set("Einloggen")
+        root_pin_setzen.mainloop()
 
 
 def konto():
-    root_konto = customtkinter.CTkToplevel()
-    root_konto.title("Konto")
-    root_konto.geometry("200x250")
+    global konto_root_exist
 
-    def konto_loeschen():
-        print("Gelöscht")
-        if user_daten:
-            user_daten.clear()
-            daten.clear()
-            f1 = "Speicher_Datein/data.txt"
-            with open(resource_path(f1), "w", encoding="utf-8"):
-                pass
-            f1 = "Speicher_Datein/user_data.txt"
-            with open(resource_path(f1), "w", encoding="utf-8"):
-                pass
-            text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+    if not konto_root_exist:
+        root_konto = customtkinter.CTkToplevel()
+        root_konto.title("Konto")
+        root_konto.geometry("200x250")
+
+        konto_root_exist = True
+
+        def on_close_konto():
+            global konto_root_exist
+            root_konto.destroy()
+            konto_root_exist = False
+
+        root_konto.protocol("WM_DELETE_WINDOW", on_close_konto)
+
+        def konto_loeschen():
+            global eingelogt
             if user_daten:
-                text_var2.set("Konto vorhanden")
+                user_daten.clear()
+                daten.clear()
+                f1 = "Speicher_Datein/data.txt"
+                with open(resource_path(f1), "w", encoding="utf-8"):
+                    pass
+                f1 = "Speicher_Datein/user_data.txt"
+                with open(resource_path(f1), "w", encoding="utf-8"):
+                    pass
+                text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+                if user_daten:
+                    text_var2.set("Konto vorhanden")
+                else:
+                    text_var2.set("Kein Konto vorhanden")
+                eingelogt = False
+
+        def checkbox_changed():
+            if cb_var.get():
+                button_reset.configure(state="normal")
             else:
-                text_var2.set("Kein Konto vorhanden")
+                button_reset.configure(state="disabled")
 
-    def checkbox_changed():
-        if cb_var.get():
-            button_reset.configure(state="normal")
+        text_var1 = tk.StringVar()
+        text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+
+        text_var2 = tk.StringVar()
+        if user_daten:
+            text_var2.set("Konto vorhanden")
         else:
-            button_reset.configure(state="disabled")
+            text_var2.set("Kein Konto vorhanden")
 
-    text_var1 = tk.StringVar()
-    text_var1.set(f"Gespeicherte Passwörter : {len(daten)}")
+        cb_var = tk.BooleanVar()
 
-    text_var2 = tk.StringVar()
-    if user_daten:
-        text_var2.set("Konto vorhanden")
-    else:
-        text_var2.set("Kein Konto vorhanden")
+        label = customtkinter.CTkLabel(root_konto, textvariable=text_var2)
+        label.pack(pady=10)
+        label02 = customtkinter.CTkLabel(root_konto, textvariable=text_var1)
+        label02.pack(pady=10)
 
-    cb_var = tk.BooleanVar()
+        button_reset = customtkinter.CTkButton(root_konto, text="Konto Löschen", corner_radius=100,
+                                               state="disabled", command=konto_loeschen)
+        button_reset.pack(pady=10)
 
-    label = customtkinter.CTkLabel(root_konto, textvariable=text_var2)
-    label.pack(pady=10)
-    label02 = customtkinter.CTkLabel(root_konto, textvariable=text_var1)
-    label02.pack(pady=10)
+        cb = customtkinter.CTkCheckBox(root_konto,
+                                       text="Ich stimme zu, \ndass alle meine\nDaten unwiderruflich\ngelöscht werden",
+                                       variable=cb_var, command=checkbox_changed)
+        cb.pack(pady=10)
 
-    button_reset = customtkinter.CTkButton(root_konto, text="Konto Löschen", corner_radius=100,
-                                           state="disabled", command=konto_loeschen)
-    button_reset.pack(pady=10)
-
-    cb = customtkinter.CTkCheckBox(root_konto,
-                                   text="Ich stimme zu, \ndass alle meine\nDaten unwiderruflich\ngelöscht werden",
-                                   variable=cb_var, command=checkbox_changed)
-    cb.pack(pady=10)
-
-    root_konto.mainloop()
+        root_konto.mainloop()
 
 
 def gespeicherte_passwoerter():
-    global user_daten, daten, eingelogt, f
+    global user_daten, daten, eingelogt, f, ge_pass_root_exist
 
     if not user_daten:
         pin_setzen(1)
@@ -161,10 +185,18 @@ def gespeicherte_passwoerter():
     else:
         if not eingelogt:
             pin_setzen(0)
-        if eingelogt:
+        if eingelogt and not ge_pass_root_exist:
             root_gespeicherte_passwoerter = customtkinter.CTk()
             root_gespeicherte_passwoerter.title("Gespeicherte Passwörter")
             root_gespeicherte_passwoerter.geometry("300x400")
+            ge_pass_root_exist = True
+
+            def on_close_ge_pass():
+                global ge_pass_root_exist
+                root_gespeicherte_passwoerter.destroy()
+                ge_pass_root_exist = False
+
+            root_gespeicherte_passwoerter.protocol("WM_DELETE_WINDOW", on_close_ge_pass)
 
             # Container für die Listbox
             listbox_frame = customtkinter.CTkFrame(root_gespeicherte_passwoerter)
@@ -294,12 +326,13 @@ def erstellen():
 
 
 def input_pin_auslesen():
-    global entry1_pin, entry2_pin, root_pin_setzen, entry_var1_pin, entry_var2_pin, user_daten, status_global, eingelogt
+    global entry1_pin, entry2_pin, root_pin_setzen, entry_var1_pin, entry_var2_pin, user_daten, status_global, eingelogt, pin_setzen_root_exist
     input_pin1: str = entry1_pin.get()
     input_pin2: str = entry2_pin.get()
     if status_global == 1:
         if input_pin1 == input_pin2 and len(input_pin1) >= 8:
             root_pin_setzen.destroy()
+            pin_setzen_root_exist = False
 
             with open(resource_path("Speicher_Datein/user_data.txt"), "w", encoding="utf-8") as f2:
                 f2.seek(0)
@@ -316,7 +349,7 @@ def input_pin_auslesen():
             # Errow Text wird angezeigt
             label_errow = customtkinter.CTkLabel(root_pin_setzen, text="Passwort mindest \nlänge 8 Zeichen.\n"
                                                                        "Überprüfen sie ihre\n Passwörter auf "
-                                                                       "\nihre richtigkeit",text_color="red")
+                                                                       "\nihre richtigkeit", text_color="red")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
     elif status_global == 0:
         # Datei 2 lesen
@@ -326,10 +359,13 @@ def input_pin_auslesen():
             user_daten = f2.readlines()
         if input_pin1 == user_daten[0] == input_pin2:
             root_pin_setzen.destroy()
+            pin_setzen_root_exist = False
             eingelogt = True
+            gespeicherte_passwoerter()
         else:
             label_errow = customtkinter.CTkLabel(root_pin_setzen, text="Passwort nicht vorhanden!\n"
-                                                                       "Überprüfen sie die Richtigkeit!",text_color="red")
+                                                                       "Überprüfen sie die Richtigkeit!",
+                                                 text_color="red")
             label_errow.grid(row=4, column=10, rowspan=6, columnspan=2)
 
 
@@ -380,9 +416,9 @@ root.rowconfigure((0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10), weight=1, uniform="a")
 # Benutzerflaeche erstellen
 label2 = customtkinter.CTkLabel(root, text="Zeichenarten wählen:")
 label3 = customtkinter.CTkLabel(root, text="Zweck des Passwortes:")
-label4 = customtkinter.CTkLabel(root, text="Eine Kategorie wählen!",text_color="red")
-label5 = customtkinter.CTkLabel(root, text="Kein Zweck vorhanden!",text_color="red")
-label6 = customtkinter.CTkLabel(root, text="Kein Passwort vorhanden!",text_color="red")
+label4 = customtkinter.CTkLabel(root, text="Eine Kategorie wählen!", text_color="red")
+label5 = customtkinter.CTkLabel(root, text="Kein Zweck vorhanden!", text_color="red")
+label6 = customtkinter.CTkLabel(root, text="Kein Passwort vorhanden!", text_color="red")
 var_chb1 = tk.BooleanVar()
 var_chb2 = tk.BooleanVar()
 var_chb3 = tk.BooleanVar()
